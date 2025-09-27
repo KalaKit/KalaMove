@@ -78,7 +78,7 @@ install(TARGETS KalaMove DESTINATION ${CMAKE_INSTALL_BINDIR})
 set(COPY_TARGETS README.md LICENSE.md CHANGES.md)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaMove POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove 
+    COMMAND ${CMAKE_COMMAND} -E rm -f 
         "$<TARGET_FILE_DIR:KalaMove>/${FILE}"
     COMMAND ${CMAKE_COMMAND} -E copy
 		"${CMAKE_SOURCE_DIR}/${FILE}"
