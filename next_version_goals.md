@@ -24,7 +24,9 @@ KalaMove 1.0 and 1.1 bail out early when a bad kmf block is detected at parse ti
 
 The purpose of the `token: ` key is to be able to avoid retyping paths for each origin or target part that is reused
 
-- pass a token as a path or a part of a path, the start of a token is marked with `$`
+- you cant pass more than one value to a token
+- a `, ` splits the name and value of a token
+- pass a token to any part of any key as a path or a part of a path, the start of a token is marked with `$`
 - tokens must use the same `@` symbol for dir splitting
 - tokens must be defined before used, but can be defined at any stage between any kmf blocks
 
@@ -95,7 +97,7 @@ The purpose of the `run: ` key is to be able to run external scripts when you ne
 
 The script referenced in this text is batch/powershell/shell depending on which one is valid and found
 
-- each run key accepts multiple scripts separated with `, `, a space separates run script param
+- each run key accepts multiple scripts separated with `, `, a space separates run script params
 - the script path is always the first parameter after an optional owner token with a space in between them
 - run key script path doesnt accept extensions so that the key can remain os-agnostic and run the same way on both windows and linux, instead the parser checks internally if the value leads to a valid script and then runs that
 - each parameter except the owner token must be covered with `?` so that parameters and paths with spaces can be sent
