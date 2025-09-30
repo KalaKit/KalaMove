@@ -68,11 +68,6 @@ namespace KalaHeaders
 	//One of the four data blocks must also be filled (inBuffer + bufferSize are together)
 	struct FileData
 	{
-		//Pointer of buffer that will be written into new file
-		uint8_t* inBuffer{};
-		//Size of buffer
-		size_t bufferSize{};
-
 		//Vector of bytes that will be written into new file
 		vector<uint8_t> inData{};
 
@@ -104,12 +99,6 @@ namespace KalaHeaders
 	inline string WriteLinesToFile(
 		const path& target,
 		const vector<string>& inLines,
-		bool append = false);
-
-	inline string WriteBinaryBufferToFile(
-		const path& target,
-		const uint8_t* inBuffer,
-		size_t bufferSize,
 		bool append = false);
 
 	inline string WriteBinaryLinesToFile(
@@ -145,9 +134,7 @@ namespace KalaHeaders
 		{
 		case FileType::FILE_TEXT:
 		{
-			if (fileData.inBuffer != nullptr
-				|| fileData.bufferSize > 0
-				|| !fileData.inData.empty())
+			if (!fileData.inData.empty())
 			{
 				oss << "Failed to create new file at path '" << target
 					<< "' because its type was set to 'FILE_TEXT' and binary data was passed to it!";
@@ -201,17 +188,6 @@ namespace KalaHeaders
 				return oss.str();
 			}
 
-			if ((fileData.inBuffer == nullptr
-				&& fileData.bufferSize > 0)
-				|| (fileData.inBuffer != nullptr
-				&& fileData.bufferSize == 0))
-			{
-				oss << "Failed to create new file at path '" << target
-					<< "' because inBuffer or bufferSize was not filled! Both must have valid data.";
-
-				return oss.str();
-			}
-
 			ofstream file(
 				target,
 				ios::out
@@ -220,24 +196,13 @@ namespace KalaHeaders
 
 			file.close();
 
-			if (fileData.inBuffer != nullptr
-				|| !fileData.inData.empty())
+			if (!fileData.inData.empty())
 			{
 				string result{};
 
-				if (fileData.inBuffer != nullptr)
-				{
-					result = WriteBinaryBufferToFile(
-						target,
-						fileData.inBuffer,
-						fileData.bufferSize);
-				}
-				else if (!fileData.inData.empty())
-				{
-					result = WriteBinaryLinesToFile(
-						target,
-						fileData.inData);
-				}
+				result = WriteBinaryLinesToFile(
+					target,
+					fileData.inData);
 
 				if (!result.empty())
 				{
@@ -1197,186 +1162,6 @@ namespace KalaHeaders
 
 		//whole file size is over 1GB - return 1MB chunk size
 		return CHUNK_1MB;
-	}
-
-	//Write raw binary buffer (pointer + size) to a file, with optional append flag.
-	//A new file is created at target path if it doesn't already exist
-	inline string WriteBinaryBufferToFile(
-		const path& target,
-		const uint8_t* inBuffer,
-		size_t bufferSize,
-		bool append)
-	{
-		ostringstream oss{};
-
-		if (exists(target)
-			&& !is_regular_file(target))
-		{
-			oss << "Failed to write binary buffer to target '" << target << "' because it is not a regular file!";
-
-			return oss.str();
-		}
-		if (!inBuffer)
-		{
-			oss << "Failed to write binary buffer to target '" << target << "' because inBuffer was null!";
-
-			return oss.str();
-		}
-		if (bufferSize == 0)
-		{
-			oss << "Failed to write binary buffer to target '" << target << "' because bufferSize was 0!";
-
-			return oss.str();
-		}
-
-		try
-		{
-			ofstream out;
-
-			if (append)
-			{
-				out.open(
-					target,
-					ios::out
-					| ios::binary
-					| ios::app);
-			}
-			else
-			{
-				out.open(
-					target,
-					ios::out
-					| ios::binary
-					| ios::trunc);
-			}
-
-			if (out.fail()
-				&& errno != 0)
-			{
-				int err = errno;
-
-				oss << "Failed to write binary buffer to target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
-
-				return oss.str();
-			}
-
-			out.write(
-				reinterpret_cast<const char*>(inBuffer),
-				static_cast<streamsize>(bufferSize));
-
-			if (out.fail()
-				&& errno != 0)
-			{
-				int err = errno;
-
-				oss << "Failed to write binary buffer to target '"
-					<< target << "' because a write error occured! Reason: (errno " << err << "): " << strerror(err);
-
-				out.close();
-				return oss.str();
-			}
-
-			out.close();
-		}
-		catch (exception& e)
-		{
-			oss << "Failed to write binary buffer to target '" << target << "'! Reason: " << e.what();
-
-			return oss.str();
-		}
-
-		return{};
-	}
-	//Read raw binary data from a file into a buffer (up to bufferSize bytes).
-	//OutBytesRead returns the number of bytes read
-	inline string ReadBinaryBufferFromFile(
-		const path& target,
-		uint8_t* outBuffer,
-		size_t bufferSize,
-		size_t& outBytesRead)
-	{
-		ostringstream oss{};
-		outBytesRead = 0;
-
-		if (!exists(target))
-		{
-			oss << "Failed to read binary buffer from target '" << target << "' because it does not exist!";
-
-			return oss.str();
-		}
-		if (!is_regular_file(target))
-		{
-			oss << "Failed to read binary buffer from target '" << target << "' because it is not a regular file!";
-
-			return oss.str();
-		}
-		if (!outBuffer)
-		{
-			oss << "Failed to read binary buffer from target '" << target << "' because outBuffer was null!";
-
-			return oss.str();
-		}
-		if (bufferSize == 0)
-		{
-			oss << "Failed to read binary buffer from target '" << target << "' because bufferSize was 0!";
-
-			return oss.str();
-		}
-
-		try
-		{
-			ifstream in(
-				target,
-				ios::in
-				| ios::binary);
-
-			if (in.fail()
-				&& errno != 0)
-			{
-				int err = errno;
-
-				oss << "Failed to read binary buffer from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
-
-				return oss.str();
-			}
-
-			in.read(
-				reinterpret_cast<char*>(outBuffer),
-				static_cast<streamsize>(bufferSize));
-
-			if (in.fail()
-				&& errno != 0)
-			{
-				int err = errno;
-
-				oss << "Failed to read binary buffer from target '"
-					<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
-
-				in.close();
-				return oss.str();
-			}
-
-			outBytesRead = static_cast<size_t>(in.gcount());
-
-			in.close();
-
-			if (outBytesRead == 0)
-			{
-				oss << "Failed to read binary buffer from target '" << target << "' because no data was read!";
-
-				return oss.str();
-			}
-		}
-		catch (exception& e)
-		{
-			oss << "Failed to read binary buffer from target '" << target << "'! Reason: " << e.what();
-
-			return oss.str();
-		}
-
-		return{};
 	}
 
 	//Write all binary data from a vector<uint8_t> to a file, with optional append flag.
