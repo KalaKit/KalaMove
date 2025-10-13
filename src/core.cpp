@@ -9,6 +9,7 @@
 #include <vector>
 #include <array>
 #include <filesystem>
+#include <iostream>
 
 #include "core.hpp"
 #include "external/log_utils.hpp"
