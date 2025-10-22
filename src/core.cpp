@@ -3,794 +3,372 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <array>
-#include <filesystem>
 #include <iostream>
+#include <string>
+#include <vector>
+#include <filesystem>
+
+#include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/string_utils.hpp"
+#include "KalaHeaders/file_utils.hpp"
 
 #include "core.hpp"
-#include "external/log_utils.hpp"
-#include "external/string_utils.hpp"
-#include "external/file_utils.hpp"
+#include "command.hpp"
+#include "move.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
-using namespace KalaHeaders;
 
-using std::string;
-using std::to_string;
-using std::string_view;
-using std::ifstream;
+using KalaHeaders::SplitString;
+using KalaHeaders::ListDirectoryContents;
+
+using KalaMove::Core;
+using KalaMove::Command;
+using KalaMove::CommandManager;
+using KalaMove::Move;
+
+using std::cin;
 using std::getline;
 using std::ostringstream;
+using std::string;
+using std::to_string;
 using std::vector;
-using std::array;
-using std::cin;
-using std::filesystem::exists;
-using std::filesystem::path;
 using std::filesystem::current_path;
-using std::filesystem::copy;
-using std::filesystem::copy_file;
-using std::filesystem::is_directory;
-using std::filesystem::is_regular_file;
-using std::filesystem::directory_iterator;
-using std::filesystem::recursive_directory_iterator;
+using std::filesystem::path;
 
-//Each kalamovefile block in the .kmf file
-struct KMF
-{
-	int line{};
-	path origin{};
-	vector<path> targets{};
-	string action{};
-};
+static void GetParams(int argc, char* argv[]);
+static void WaitForInput();
 
-static path thisPath{};
+static void AddBuiltInCommands();
 
-constexpr string_view EXE_VERSION_NUMBER = "1.1";
-constexpr string_view KMF_VERSION_NUMBER = "1.0";
-constexpr string_view KMF_VERSION_NAME = "#KMF VERSION 1.0";
-constexpr string_view KMF_EXTENSION = ".ktf";
+//Built-in command for listing all commands
+static void Command_Help(const vector<string>& params);
+//Built-in command for listing info about chosen command
+static void Command_Info(const vector<string>& params);
 
-static const array<string, 6> actionTypes =
-{
-	"move",      //force copy file or folder to all paths except last, move to last
-	"copy",      //copy file or folder to target only if target does not already have this file
-	"forcecopy", //copy file or folder to target and overwrite
-	"rename",    //rename file or folder in local dir
-	"delete",    //delete file or folder
-	"create"     //create new directory
-};
+//Built-in command for listing current path
+static void Command_Where(const vector<string>& params);
+//Built-in command for listing all files and folders in current dir
+static void Command_List(const vector<string>& params);
+//Built-in command for going to desired path
+static void Command_Go(const vector<string>& params);
 
-static vector<KMF> GetAllKMFContent(path kmfFile);
-static void HandleKMFBlock(KMF kmfBlock);
-
-static void Exit()
-{
-	ostringstream out{};
-	out << "\n==========================================================================================\n";
-	Log::Print(out.str());
-
-	Log::Print("Press 'Enter' to exit...");
-	cin.get();
-	quick_exit(0);
-}
+//Built-in command for cleaning console commands
+static void Command_Clear(const vector<string>& params);
+//Built-in command for closing the cli
+static void Command_Exit(const vector<string>& params);
 
 namespace KalaMove
 {
 	void Core::Run(int argc, char* argv[])
 	{
-		ostringstream banner{};
-
-		banner << "\n==========================================================================================\n\n"
-			   << " /$$   /$$           /$$           /$$      /$$                               \n"
-			   << "| $$  /$$/          | $$          | $$$    /$$$                               \n"
-			   << "| $$ /$$/   /$$$$$$ | $$  /$$$$$$ | $$$$  /$$$$  /$$$$$$  /$$    /$$ /$$$$$$  \n"
-			   << "| $$$$$/   |____  $$| $$ |____  $$| $$ $$/$$ $$ /$$__  $$|  $$  /$$//$$__  $$ \n"
-			   << "| $$  $$    /$$$$$$$| $$  /$$$$$$$| $$  $$$| $$| $$  \\ $$ \\  $$/$$/| $$$$$$$$ \n"
-			   << "| $$\\  $$  /$$__  $$| $$ /$$__  $$| $$\\  $ | $$| $$  | $$  \\  $$$/ | $$_____/ \n"
-			   << "| $$ \\  $$|  $$$$$$$| $$|  $$$$$$$| $$ \\/  | $$|  $$$$$$/   \\  $/  |  $$$$$$$ \n"
-			   << "|__/  \\__/ \\_______/|__/ \\_______/|__/     |__/ \\______/     \\_/    \\_______/ \n";
-
-		Log::Print(banner.str());
-
-		ostringstream details{};
-
-		details 
-			<< "     | exe version: " << EXE_VERSION_NUMBER.data() << "\n"
-			<< "     | kmf version: " << KMF_VERSION_NUMBER.data() << "\n";
-
-		vector<path> kmfFiles{};
-
-		auto IsValidKMFPath = [](path kmfPath)
-			{
-				return
-					is_regular_file(kmfPath)
-					&& kmfPath.extension() == ".kmf";
-			};
-
-		if (argc == 1)
-		{
-			details << "     | run mode:    manual\n";
-
-			for (const auto& file : directory_iterator(current_path()))
-			{
-				path kmfPath = file;
-
-				if (IsValidKMFPath(kmfPath)) kmfFiles.push_back(kmfPath);
-			}
-		}
-		else
-		{
-			details << "     | run mode:    param\n";
-
-			for (int i = 1; i < argc; ++i)
-			{
-				path kmfPath = argv[i];
-
-				if (IsValidKMFPath(kmfPath)) kmfFiles.push_back(kmfPath);
-			}
-		}
-
-		details << "     | found files: " << kmfFiles.size() << "\n";
-		details << "\n==========================================================================================\n";
-		Log::Print(details.str());
-
-		if (kmfFiles.empty())
-		{
-			Log::Print(
-				"Did not find any .kmf files. There is nothing to copy.",
-				"GET_KMF",
-				LogType::LOG_ERROR);
-
-			Exit();
-		}
-
-		vector<KMF> kmfContent{};
-		for (const auto& kmfFile : kmfFiles)
-		{
-			vector<KMF> thisKmfContent = GetAllKMFContent(kmfFile);
-
-			kmfContent.insert(
-				kmfContent.end(), 
-				thisKmfContent.begin(), 
-				thisKmfContent.end());
-		}
-
-		if (kmfContent.empty())
-		{
-			Log::Print(
-				"Did not find any valid kmf content. There is nothing to copy.",
-				"READ_KMF",
-				LogType::LOG_ERROR);
-
-			Exit();
-		}
-
-		for (const auto& kmf : kmfContent)
-		{
-			HandleKMFBlock(kmf);
-		}
-
-		Exit();
+		GetParams(argc, argv);
+		WaitForInput();
 	}
 }
 
-vector<KMF> GetAllKMFContent(path kmfFile)
+void GetParams(int argc, char* argv[])
 {
-	vector<KMF> result{};
+	if (argc == 1) WaitForInput();
 
-	thisPath = kmfFile.parent_path();
+	string insertedCommand{};
 
-	bool foundVersion = false;
-	string line{};
-	static int lineNumber{};
-
-	static bool hasOrigin{};
-	static bool hasTargets{};
-	static bool hasAction{};
-
-	static struct KMF kmfBlock {};
-
-	ifstream file(kmfFile);
-
-	if (!file.is_open())
+	vector<string> params{};
+	for (int i = 1; i < argc; ++i)
 	{
-		Log::Print(
-			"Failed to read kmf file '" + kmfFile.string() + "'!",
-			"READ_KMF",
-			LogType::LOG_ERROR);
-
-		return{};
+		params.emplace_back(argv[i]);
+		insertedCommand += "'" + string(argv[i]) + "' ";
 	}
 
-	auto IsValidVersion = [](
-		const string& line,
-		const string& kmfPath,
-		int lineNumber)
-		{
-			//correct version was found
-			if (line == KMF_VERSION_NAME) return true;
+	if (params.empty()) WaitForInput();
 
-			//found version tag but incorrect version or invalid version string was found
-			if (!StartsWith(line, "#KMF VERSION "))
-			{
-				Log::Print(
-					"Kmf file '" + kmfPath + "' has an invalid version '" + line + "' at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return false;
-			}
-			else
-			{
-				vector<string> split = SplitString(line, " ");
-
-				if (split.size() > 3)
-				{
-					Log::Print(
-						"Kmf file '" + kmfPath + "' has an invalid version '" + line + "' with too many values at line '" + to_string(lineNumber) + "'!",
-						"READ_KMF",
-						LogType::LOG_ERROR);
-
-					return false;
-				}
-
-				if (split[2] != KMF_VERSION_NUMBER)
-				{
-					Log::Print(
-						"Kmf file '" + kmfPath + "' has an invalid version number '" + split[2] + "' at line '" + to_string(lineNumber) + "'!",
-						"READ_KMF",
-						LogType::LOG_ERROR);
-
-					return false;
-				}
-			}
-
-			return true;
-		};
-
-	auto ClearContent = [&]()
-		{
-			kmfBlock.origin.clear();
-			kmfBlock.targets.clear();
-			kmfBlock.action.clear();
-
-			hasOrigin = false;
-			hasTargets = false;
-			hasAction = false;
-		};
-
-	while (getline(file, line))
-	{
-		bool isLastLine = file.peek() == EOF;
-
-		lineNumber++;
-		
-		//skip empty and comment lines
-		if (line.empty()
-			|| StartsWith(line, "//"))
-		{
-			continue;
-		}
-
-		//version must always be at the top
-		if (!foundVersion)
-		{
-			foundVersion = IsValidVersion(
-				line,
-				kmfFile.string(),
-				lineNumber);
-
-			if (!foundVersion)
-			{
-				return{};
-			}
-
-			if (isLastLine)
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has no content after line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return{};
-			}
-
-			Log::Print(
-				"Kmf file '" + kmfFile.stem().string() + "' was found with version '" + line + "'.",
-				"READ_KMF",
-				LogType::LOG_SUCCESS);
-
-			continue;
-		}
-
-		//
-		// GET ORIGIN PATH
-		//
-
-		if (!hasOrigin)
-		{
-			kmfBlock.line = lineNumber;
-
-			if (!StartsWith(line, "origin: "))
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has a missing origin key at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			string originPathString = RemoveAllFromString(line, "origin: ");
-			if (originPathString.empty())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has an origin path with no assigned value at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			bool isAbsolute = StartsWith(originPathString, "@@");
-
-			path originPath{};
-
-			//add path relative to exe as prefix if not absolute
-			if (!isAbsolute) originPath = thisPath / originPathString;
-			else
-			{
-				originPathString = ReplaceAllFromString(originPathString, "@@", "");
-				originPath = originPathString;
-			}
-
-#ifdef _WIN32
-			originPath = ReplaceAllFromString(originPath.string(), "@", "\\");
-#else
-			originPath = ReplaceAllFromString(originPath.string(), "@", "/");
-#endif
-
-			if (!exists(originPath))
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has an origin path '" + originPathString + "' at line '" + to_string(lineNumber) + "' that does not exist!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			Log::Print(
-				"Kmf file '" + kmfFile.stem().string() + "' has a correct origin '" + originPathString + "' at line '" + to_string(lineNumber) + "'.",
-				"READ_KMF",
-				LogType::LOG_DEBUG);
-
-			kmfBlock.origin = originPath;
-			hasOrigin = true;
-
-			if (isLastLine)
-			{
-				result.push_back(kmfBlock);
-				ClearContent();
-			}
-
-			continue;
-		}
-
-		//
-		// GET TARGET PATHS
-		//
-
-		if (!hasTargets)
-		{
-			if (!StartsWith(line, "target: "))
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has a missing target key at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			string targetPathsString = RemoveAllFromString(line, "target: ");
-			if (targetPathsString.empty())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has no assigned target path values at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			vector<string> targets = SplitString(targetPathsString, ", ");
-			if (targets.empty())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has no assigned target path values at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			for (const auto& target : targets)
-			{
-				string correctTarget = target;
-
-				bool isAbsolute = StartsWith(correctTarget, "@@");
-
-				path fullTarget{};
-
-				//add path relative to exe as prefix if not absolute
-				if (!isAbsolute) fullTarget = thisPath / correctTarget;
-				else
-				{
-					correctTarget = ReplaceAllFromString(correctTarget, "@@", "");
-					fullTarget = correctTarget;
-				}
-
-#ifdef _WIN32
-				fullTarget = ReplaceAllFromString(fullTarget.string(), "@", "\\");
-#else
-				fullTarget = ReplaceAllFromString(fullTarget.string(), "@", "/");
-#endif
-
-				if (kmfBlock.origin == fullTarget)
-				{
-					Log::Print(
-						"Kmf file '" + kmfFile.string() + "' has an invalid target at line '" + to_string(lineNumber) + "', it was skipped. Origin cannot be the same path as target path '" + correctTarget + "'!",
-						"READ_KMF",
-						LogType::LOG_WARNING);
-
-					continue;
-				}
-
-				if (kmfBlock.origin.has_extension()
-					&& !fullTarget.has_extension())
-				{
-					Log::Print(
-						"Kmf file '" + kmfFile.string() + "' has an invalid target at line '" + to_string(lineNumber) + "', it was skipped. Origin has an extension but target '" + correctTarget + "' does not!",
-						"READ_KMF",
-						LogType::LOG_WARNING);
-
-					continue;
-				}
-
-				if (!kmfBlock.origin.has_extension()
-					&& fullTarget.has_extension())
-				{
-					Log::Print(
-						"Kmf file '" + kmfFile.string() + "' has an invalid target at line '" + to_string(lineNumber) + "', it was skipped. Origin does not have an extension but target '" + correctTarget + "' does!",
-						"READ_KMF",
-						LogType::LOG_WARNING);
-
-					continue;
-				}
-
-				if (kmfBlock.origin.has_extension()
-					&& fullTarget.has_extension()
-					&& kmfBlock.origin.extension().string()
-					!= fullTarget.extension().string())
-				{
-					Log::Print(
-						"Kmf file '" + kmfFile.string() + "' has an invalid target at line '" + to_string(lineNumber) + "', it was skipped. Origin and target are regular files, origin has extension '" + kmfBlock.origin.extension().string() + "' but target '" + correctTarget + "' did not have the same extension!",
-						"READ_KMF",
-						LogType::LOG_WARNING);
-
-					continue;
-				}
-
-				Log::Print(
-					"Kmf file '" + kmfFile.stem().string() + "' has correct targets at line '" + to_string(lineNumber) + "'.",
-					"READ_KMF",
-					LogType::LOG_DEBUG);
-
-				kmfBlock.targets.push_back(fullTarget);
-			}
-
-			//also ensure any values actually were moved to kmf block if invalid paths were skipped
-			if (kmfBlock.targets.empty())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has no assigned target path values at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			hasTargets = true;
-
-			if (isLastLine)
-			{
-				result.push_back(kmfBlock);
-				ClearContent();
-			}
-			
-			continue;
-		}
-
-		//
-		// GET ACTION STATE
-		//
-
-		if (!hasAction)
-		{
-			if (!StartsWith(line, "action: "))
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has a missing action key at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			string actionString = RemoveAllFromString(line, "action: ");
-			if (actionString.empty())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has no assigned action value at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			if (find(actionTypes.begin(), actionTypes.end(), actionString) == actionTypes.end())
-			{
-				Log::Print(
-					"Kmf file '" + kmfFile.string() + "' has an invalid action value '" + actionString + "' at line '" + to_string(lineNumber) + "'!",
-					"READ_KMF",
-					LogType::LOG_ERROR);
-
-				return {};
-			}
-
-			kmfBlock.action = actionString;
-			hasAction = true;
-
-			result.push_back(kmfBlock);
-			ClearContent();
-
-			Log::Print(
-				"Kmf file '" + kmfFile.stem().string() + "' has a correct action '" + actionString + "' at line '" + to_string(lineNumber) + "'.",
-				"READ_KMF",
-				LogType::LOG_DEBUG);
-		}
-	}
-
-	if (!foundVersion)
-	{
-		Log::Print(
-			"Kmf file '" + kmfFile.string() + "' does not have a version!",
-			"READ_KMF",
-			LogType::LOG_ERROR);
-
-		return{};
-	}
-
-	for (const auto& kmf : result)
-	{
-		if (kmf.targets.empty())
-		{
-			string targetLine = to_string(kmf.line + 1);
-
-			Log::Print(
-				"Kmf file '" + kmfFile.string() + "' has no assigned valid targets at line '" + targetLine + "'!",
-				"READ_KMF",
-				LogType::LOG_ERROR);
-
-			return{};
-		}
-
-		if (kmf.action.empty())
-		{
-			string targetLine = to_string(kmf.line + 2);
-
-			Log::Print(
-				"Kmf file '" + kmfFile.string() + "' has no assigned action at line '" + targetLine + "'!",
-				"READ_KMF",
-				LogType::LOG_ERROR);
-
-			return{};
-		}
-	}
-
-	return result;
-}
-
-void HandleKMFBlock(KMF kmfBlock)
-{
 	Log::Print(
-		"Started with action '" + kmfBlock.action + "' for origin '" + kmfBlock.origin.string() + "'.",
-		"HANDLE_KMF",
-		LogType::LOG_DEBUG);
+		"Inserted command: " + insertedCommand + "\n",
+		"PARSE",
+		LogType::LOG_INFO);
 
-	for (const auto& target : kmfBlock.targets)
+	CommandManager::ParseCommand(params);
+}
+
+void WaitForInput()
+{
+	AddBuiltInCommands();
+
+	Command cmd_move
 	{
-		if (kmfBlock.action == "copy")
+		.primary = { "move" },
+		.description = "Parse a kmf file or pass 'all' to parse all kmf paths in current directory which runs filesystem commands.",
+		.paramCount = 2,
+		.targetFunction = Move::Run
+	};
+	CommandManager::AddCommand(cmd_move);
+
+	string line{};
+	while (true)
+	{
+		Log::Print("\nEnter command:");
+
+		getline(cin, line);
+
+		//uncomment if you want each new command to clean the console
+		//system("cls");
+
+		vector<string> splitValue = SplitString(line, " ");
+
+		if (splitValue.size() == 0) continue;
+
+		CommandManager::ParseCommand(splitValue);
+	}
+}
+
+void AddBuiltInCommands()
+{
+	static vector<string> empty{};
+
+	Command cmd_help
+	{
+		.primary = { "help" },
+		.description = "Lists all available commands.",
+		.paramCount = 1,
+		.targetFunction = Command_Help
+	};
+	Command cmd_info
+	{
+		.primary = { "info" },
+		.description = "Lists info about chosen command.",
+		.paramCount = 2,
+		.targetFunction = Command_Info
+	};
+	Command cmd_clear
+	{
+		.primary = { "clear", "c" },
+		.description = "Clears the console from all messages.",
+		.paramCount = 1,
+		.targetFunction = Command_Clear
+	};
+
+	Command cmd_where
+	{
+		.primary = { "where" },
+		.description = "Displays current path.",
+		.paramCount = 1,
+		.targetFunction = Command_Where
+	};
+	Command cmd_list
+	{
+		.primary = { "list" },
+		.description = "Lists all files and folders in current directory.",
+		.paramCount = 1,
+		.targetFunction = Command_List
+	};
+	Command cmd_go
+	{
+		.primary = { "go" },
+		.description = "Goes to chosen directory.",
+		.paramCount = 2,
+		.targetFunction = Command_Go
+	};
+
+	Command cmd_exit
+	{
+		.primary = { "exit", "e" },
+		.description = "Asks for user to press enter to close the cli, good for reading messages before quitting.",
+		.paramCount = 1,
+		.targetFunction = Command_Exit
+	};
+	Command cmd_qe
+	{
+		.primary = { "quickexit", "qe" },
+		.description = "Quickly exits this cli without any 'Press Enter to quit' confirmation.",
+		.paramCount = 1,
+		.targetFunction = Command_Exit
+	};
+
+	CommandManager::AddCommand(cmd_help);
+	CommandManager::AddCommand(cmd_info);
+
+	CommandManager::AddCommand(cmd_where);
+	CommandManager::AddCommand(cmd_list);
+	CommandManager::AddCommand(cmd_go);
+
+	CommandManager::AddCommand(cmd_clear);
+	CommandManager::AddCommand(cmd_exit);
+	CommandManager::AddCommand(cmd_qe);
+}
+
+void Command_Help(const vector<string>& params)
+{
+	ostringstream result{};
+
+	result << "\nListing all commands. Type 'info' with a command name as the second parameter to get more info about that command\n";
+	for (const auto& c : CommandManager::commands)
+	{
+		for (const auto& p : c.primary)
 		{
-			ostringstream success{};
-
-			if (exists(target))
+			if (p == c.primary[0]) result << "  ";
+			result << p;
+			if (p != c.primary[c.primary.size() - 1])
 			{
-				success << "Skipped copying to target '" << target << "' because it already exists.";
-
-				Log::Print(
-					success.str(),
-					"HANDLE_KMF",
-					LogType::LOG_SUCCESS);
-
-				continue;
+				result << ", ";
 			}
-
-			string result = CopyPath(
-				kmfBlock.origin,
-				target);
-
-			if (!result.empty())
-			{
-				Log::Print(
-					result,
-					"HANDLE_KMF",
-					LogType::LOG_ERROR);
-
-				continue;
-			}
-
-			success << "Copied origin '" << kmfBlock.origin << "' to target '" << target << ".";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
-		}
-		else if (kmfBlock.action == "forcecopy")
-		{
-			string result = CopyPath(
-				kmfBlock.origin,
-				target,
-				true);
-
-			if (!result.empty())
-			{
-				Log::Print(
-					result,
-					"HANDLE_KMF",
-					LogType::LOG_ERROR);
-
-				continue;
-			}
-
-			ostringstream success{};
-			success << "Force copied origin '" << kmfBlock.origin << "' to target '" << target << ".";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
-		}
-		else if (kmfBlock.action == "move")
-		{
-			if (target != kmfBlock.targets.back())
-			{
-				string result = CopyPath(
-					kmfBlock.origin,
-					target,
-					true);
-
-				if (!result.empty())
-				{
-					Log::Print(
-						result,
-						"HANDLE_KMF",
-						LogType::LOG_ERROR);
-
-					continue;
-				}
-			}
-			else
-			{
-				string result = MovePath(
-					kmfBlock.origin,
-					target);
-
-				if (!result.empty())
-				{
-					Log::Print(
-						result,
-						"HANDLE_KMF",
-						LogType::LOG_ERROR);
-
-					continue;
-				}
-			}
-
-			ostringstream success{};
-			success << "Moved origin '" << kmfBlock.origin << "' to target '" << target << ".";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
-		}
-		else if (kmfBlock.action == "rename")
-		{
-			string result = RenamePath(
-				target,
-				kmfBlock.origin.stem().string());
-
-			if (!result.empty())
-			{
-				Log::Print(
-					result,
-					"HANDLE_KMF",
-					LogType::LOG_ERROR);
-
-				continue;
-			}
-
-			ostringstream success{};
-			success << "Renamed origin '" << target << "' to '" << kmfBlock.origin.stem() << ".";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
-		}
-		else if (kmfBlock.action == "delete")
-		{
-			string result = DeletePath(
-				target);
-
-			if (!result.empty())
-			{
-				Log::Print(
-					result,
-					"HANDLE_KMF",
-					LogType::LOG_ERROR);
-
-				continue;
-			}
-
-			ostringstream success{};
-			success << "Deleted target '" << target << "'.";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
-		}
-		else if (kmfBlock.action == "create")
-		{
-			string result = CreateDirectory(
-				target);
-
-			if (!result.empty())
-			{
-				Log::Print(
-					result,
-					"HANDLE_KMF",
-					LogType::LOG_ERROR);
-
-				continue;
-			}
-
-			ostringstream success{};
-			success << "Created new target '" << target << "'.";
-
-			Log::Print(
-				success.str(),
-				"HANDLE_KMF",
-				LogType::LOG_SUCCESS);
+			else result << "\n";
 		}
 	}
+
+	Log::Print(result.str());
+}
+
+void Command_Info(const vector<string>& params)
+{
+	string command = params[1];
+
+	ostringstream result{};
+
+	result << "\n";
+
+	Command cmd{};
+
+	for (const auto& c : CommandManager::commands)
+	{
+		if (find(c.primary.begin(), c.primary.end(), command) != c.primary.end())
+		{
+			cmd = c;
+			break;
+		}
+	}
+
+	if (cmd.primary.empty()
+		&& cmd.paramCount == 0
+		&& !cmd.targetFunction)
+	{
+		Log::Print(
+			"Cannot print info about a command that doesn't exist!",
+			"PARSE",
+			LogType::LOG_ERROR,
+			2);
+
+		return;
+	}
+
+	result << "primary variants: ";
+	for (const auto& p : cmd.primary)
+	{
+		result << p;
+		if (p != cmd.primary[cmd.primary.size() - 1])
+		{
+			result << ", ";
+		}
+		else result << "\n";
+	}
+
+	result << "description: " << cmd.description << "\n";
+	result << "parameter count: " << to_string(cmd.paramCount);
+
+	Log::Print(result.str());
+}
+
+void Command_Where(const vector<string>& params)
+{
+	if (Core::currentDir.empty()) Core::currentDir = current_path().string();
+	Log::Print("\nCurrently at: " + Core::currentDir);
+}
+
+void Command_List(const vector<string>& params)
+{
+	if (Core::currentDir.empty()) Core::currentDir = current_path().string();
+
+	vector<path> content{};
+
+	string result = ListDirectoryContents(Core::currentDir, content);
+
+	if (!result.empty())
+	{
+		Log::Print(
+			"Failed to list current directory contents! Reason: " + result,
+			"COMMAND",
+			LogType::LOG_ERROR,
+			2);
+
+		return;
+	}
+
+	ostringstream oss{};
+
+	oss << "\nListing all paths at '" << Core::currentDir << "':\n";
+	if (content.empty()) oss << "  - (empty)";
+	else
+	{
+		for (size_t i = 0; i < content.size(); ++i)
+		{
+			oss << "  - ";
+
+			path rel = content[i].lexically_relative(Core::currentDir);
+			oss << rel.string();
+
+			if (is_directory(content[i])) oss << "/";
+
+			if (i + 1 < content.size()) oss << "\n";
+		}
+	}
+
+	Log::Print(oss.str());
+}
+
+void Command_Go(const vector<string>& params)
+{
+	if (Core::currentDir.empty()) Core::currentDir = current_path().string();
+	path correctTarget = weakly_canonical(path(Core::currentDir) / params[1]);
+
+	if (!exists(correctTarget))
+	{
+		ostringstream oss{};
+		oss << "Cannot go to target path '" << correctTarget
+			<< "' because it does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"COMMAND",
+			LogType::LOG_ERROR,
+			2);
+
+		return;
+	}
+
+	if (!is_directory(correctTarget))
+	{
+		ostringstream oss{};
+		oss << "Cannot go to target path '" << correctTarget
+			<< "' because it is not a directory!";
+
+		Log::Print(
+			oss.str(),
+			"COMMAND",
+			LogType::LOG_ERROR,
+			2);
+
+		return;
+	}
+
+	Core::currentDir = correctTarget.string();
+
+	Log::Print("\nMoved to new path: " + Core::currentDir);
+}
+
+void Command_Clear(const vector<string>& params) { system("cls"); }
+
+void Command_Exit(const vector<string>& params)
+{
+	if (params.size() == 1
+		&& (params[0] == "exit"
+			|| params[0] == "e"))
+	{
+		ostringstream out{};
+		out << "\n==========================================================================================\n";
+		Log::Print(out.str());
+
+		Log::Print("Press 'Enter' to exit...");
+		cin.get();
+	}
+
+	quick_exit(0);
 }

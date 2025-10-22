@@ -10,6 +10,6 @@ using KalaMove::Core;
 int main(int argc, char* argv[])
 {
 	Core::Run(argc, argv);
-	
+
 	return 0;
 }

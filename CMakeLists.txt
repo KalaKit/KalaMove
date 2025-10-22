@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.29.2)
 
-set(PROGRAM_VERSION_NUMBER 1.1.0.0)
+set(PROGRAM_VERSION_NUMBER 1.2.0.0)
 
 project("KalaMove" VERSION ${PROGRAM_VERSION_NUMBER} LANGUAGES C CXX)
 
@@ -31,6 +31,7 @@ endif()
 
 # Directory Setup
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
 # Source Files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
@@ -57,6 +58,7 @@ file(GLOB_RECURSE HEADERS
 target_sources(KalaMove PRIVATE ${HEADERS})
 target_include_directories(KalaMove PRIVATE
 	"${INCLUDE_DIR}"
+	"${EXT_SHARED_DIR}"
 )
 
 # Preprocessor Defines

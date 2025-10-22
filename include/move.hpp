@@ -5,17 +5,19 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
 
 namespace KalaMove
 {
+	using std::vector;
 	using std::string;
 
-	class Core
+	class Move
 	{
 	public:
-		static inline string currentDir{};
-
-		static void Run(int argc, char* argv[]);
+		//Ensures all paths we need to copy from and to are valid
+		//and handles copying all files to relevant paths
+		static void Run(const vector<string>& params);
 	};
 }
