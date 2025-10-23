@@ -18,8 +18,9 @@
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
-
+using KalaHeaders::ContainsString;
 using KalaHeaders::SplitString;
+using KalaHeaders::TrimString;
 using KalaHeaders::ListDirectoryContents;
 
 using KalaMove::Core;
@@ -35,9 +36,6 @@ using std::to_string;
 using std::vector;
 using std::filesystem::current_path;
 using std::filesystem::path;
-
-static void GetParams(int argc, char* argv[]);
-static void WaitForInput();
 
 static void AddBuiltInCommands();
 
@@ -60,64 +58,49 @@ static void Command_Exit(const vector<string>& params);
 
 namespace KalaMove
 {
-	void Core::Run(int argc, char* argv[])
+	void Core::Run()
 	{
-		GetParams(argc, argv);
-		WaitForInput();
-	}
-}
+		AddBuiltInCommands();
 
-void GetParams(int argc, char* argv[])
-{
-	if (argc == 1) WaitForInput();
+		Command cmd_move
+		{
+			.primary = { "move" },
+			.description = "Parse a kmf file or pass 'all' to parse all kmf paths in current directory which runs filesystem commands.",
+			.paramCount = 2,
+			.targetFunction = Move::Run
+		};
+		CommandManager::AddCommand(cmd_move);
 
-	string insertedCommand{};
+		string line{};
+		while (true)
+		{
+			Log::Print("\nEnter command:");
 
-	vector<string> params{};
-	for (int i = 1; i < argc; ++i)
-	{
-		params.emplace_back(argv[i]);
-		insertedCommand += "'" + string(argv[i]) + "' ";
-	}
+			getline(cin, line);
 
-	if (params.empty()) WaitForInput();
+			//uncomment if you want each new command to clean the console
+			//system("cls");
 
-	Log::Print(
-		"Inserted command: " + insertedCommand + "\n",
-		"PARSE",
-		LogType::LOG_INFO);
+			if (line.empty()) continue;
 
-	CommandManager::ParseCommand(params);
-}
+			vector<string> splitCommands{};
+			if (ContainsString(line, "&"))
+			{
+				splitCommands = SplitString(line, "&");
+			}
+			else splitCommands.push_back(line);
 
-void WaitForInput()
-{
-	AddBuiltInCommands();
+			for (const auto& c : splitCommands)
+			{
+				string cleanedLine = TrimString(c);
 
-	Command cmd_move
-	{
-		.primary = { "move" },
-		.description = "Parse a kmf file or pass 'all' to parse all kmf paths in current directory which runs filesystem commands.",
-		.paramCount = 2,
-		.targetFunction = Move::Run
-	};
-	CommandManager::AddCommand(cmd_move);
+				vector<string> splitValue = SplitString(cleanedLine, " ");
 
-	string line{};
-	while (true)
-	{
-		Log::Print("\nEnter command:");
+				if (splitValue.size() == 0) continue;
 
-		getline(cin, line);
-
-		//uncomment if you want each new command to clean the console
-		//system("cls");
-
-		vector<string> splitValue = SplitString(line, " ");
-
-		if (splitValue.size() == 0) continue;
-
-		CommandManager::ParseCommand(splitValue);
+				CommandManager::ParseCommand(splitValue);
+			}
+		}
 	}
 }
 
@@ -200,7 +183,10 @@ void Command_Help(const vector<string>& params)
 {
 	ostringstream result{};
 
-	result << "\nListing all commands. Type 'info' with a command name as the second parameter to get more info about that command\n";
+	result << "\nType 'info' with a command name as the"
+		<< " second parameter to get more info about that command.\n"
+		<< "Use the ampersand (&) symbol to stack commands, for example '--list & --qe' to list and quick exit.\n\n"
+		<< "Listing all commands:\n";
 	for (const auto& c : CommandManager::commands)
 	{
 		for (const auto& p : c.primary)
