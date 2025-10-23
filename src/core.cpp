@@ -58,18 +58,39 @@ static void Command_Exit(const vector<string>& params);
 
 namespace KalaMove
 {
-	void Core::Run()
+	void Core::Run(int argc, char* argv[])
 	{
 		AddBuiltInCommands();
 
 		Command cmd_move
 		{
 			.primary = { "move" },
-			.description = "Parse a kmf file or pass 'all' to parse all kmf paths in current directory which runs filesystem commands.",
+			.description = "Parse a kmf file, second parameter must be valid path.",
 			.paramCount = 2,
 			.targetFunction = Move::Run
 		};
+		Command cmd_move_all
+		{
+			.primary = { "all" },
+			.description = "Parse all found kmf files in current directory.",
+			.paramCount = 1,
+			.targetFunction = Move::Run
+		};
+
 		CommandManager::AddCommand(cmd_move);
+		CommandManager::AddCommand(cmd_move_all);
+
+		//run the passed command if one was passed
+		if (argc > 1)
+		{
+			vector<string> params{};
+			for (int i = 1; i < argc; ++i) params.emplace_back(argv[i]);
+
+			if (!params.empty()) CommandManager::ParseCommand(params);
+
+			//always exits if a command was passed, otherwise goes into cli mode
+			Command_Exit({});
+		}
 
 		string line{};
 		while (true)

@@ -76,7 +76,8 @@ namespace KalaMove
 	{
 		vector<path> kmfFiles{};
 
-		if (params[1] == "all")
+		if (params.size() == 1
+			&& params[0] == "all")
 		{
 			if (Core::currentDir.empty()) Core::currentDir = current_path().string();
 
@@ -88,8 +89,20 @@ namespace KalaMove
 					kmfFiles.push_back(p);
 				}
 			}
+
+			if (kmfFiles.empty())
+			{
+				Log::Print(
+					"Did not find any .kmf files from current folder. There is nothing to copy.",
+					"GET_KMF",
+					LogType::LOG_ERROR,
+					2);
+
+				return;
+			}
 		}
-		else
+		else if (params.size() == 2
+				 && params[0] == "move")
 		{
 			if (is_regular_file(params[1])
 				&& path(params[1]).has_extension()
@@ -97,12 +110,21 @@ namespace KalaMove
 			{
 				kmfFiles.push_back(params[1]);
 			}
-		}
+			else
+			{
+				Log::Print(
+					"Path '" + params[1] + "' does not lead to a valid .kmf file!",
+					"GET_KMF",
+					LogType::LOG_ERROR,
+					2);
 
-		if (kmfFiles.empty())
+				return;
+			}
+		}
+		else
 		{
 			Log::Print(
-				"Did not find any .kmf files. There is nothing to copy.",
+				"Invalid combination of parameters was passed to 'move' or 'all' command!",
 				"GET_KMF",
 				LogType::LOG_ERROR,
 				2);

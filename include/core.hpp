@@ -16,6 +16,6 @@ namespace KalaMove
 	public:
 		static inline string currentDir{};
 
-		static void Run();
+		static void Run(int argc, char* argv[]);
 	};
 }
