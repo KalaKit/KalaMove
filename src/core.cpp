@@ -127,8 +127,6 @@ namespace KalaMove
 
 void AddBuiltInCommands()
 {
-	static vector<string> empty{};
-
 	Command cmd_help
 	{
 		.primary = { "help" },
