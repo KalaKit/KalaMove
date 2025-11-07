@@ -1,5 +1,4 @@
-KalaMove library repository
-https://github.com/KalaKit/KalaMove
+[KalaMove source repository](https://github.com/KalaKit/KalaMove)
 
 ---
 
