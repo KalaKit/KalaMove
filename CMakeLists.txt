@@ -33,6 +33,15 @@ endif()
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
+set(EXT_CLI_DIR "${EXT_SHARED_DIR}/KalaCLI")
+
+# Library Paths
+if(IS_RELEASE)
+    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/release/_KalaCLI1.lib")
+else()
+    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/debug/_KalaCLI1d.lib")
+endif()
+
 # Source Files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
@@ -59,10 +68,15 @@ target_sources(KalaMove PRIVATE ${HEADERS})
 target_include_directories(KalaMove PRIVATE
 	"${INCLUDE_DIR}"
 	"${EXT_SHARED_DIR}"
+	"${EXT_SHARED_DIR}/KalaCLI/include"
 )
 
 # Preprocessor Defines
 target_compile_definitions(KalaMove PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+
+# Link libraries
+target_link_libraries(KalaMove PRIVATE
+	${CLI_LIBRARY_PATH})
 
 # Hide console in release mode
 #if(IS_RELEASE)
@@ -75,6 +89,35 @@ target_compile_definitions(KalaMove PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 # Installation
 set(CMAKE_INSTALL_BINDIR bin)
 install(TARGETS KalaMove DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# Copy external binaries
+if(IS_RELEASE)
+	set(BIN_KALACLI "${EXT_CLI_DIR}/release")
+else()
+	set(BIN_KALACLI "${EXT_CLI_DIR}/debug")
+endif()
+
+if (IS_RELEASE)
+	file(GLOB BIN_FILES
+		"${BIN_KALACLI}/*.dll"
+	)
+else()
+	file(GLOB BIN_FILES
+		"${BIN_KALACLI}/*.dll"
+		"${BIN_KALACLI}/*.pdb"
+	)
+endif()
+
+set(BIN_TARGET_DIR "$<TARGET_FILE_DIR:KalaMove>")
+
+foreach(BIN_FILE ${BIN_FILES})
+    get_filename_component(BIN_NAME ${BIN_FILE} NAME)
+    add_custom_command(TARGET KalaMove POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy 
+			"${BIN_FILE}"
+			"${BIN_TARGET_DIR}/${BIN_NAME}"
+    )
+endforeach()
 
 # Copy important files
 set(COPY_TARGETS README.md LICENSE.md CHANGES.md)

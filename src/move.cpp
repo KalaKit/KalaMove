@@ -15,13 +15,13 @@
 #include "KalaHeaders/string_utils.hpp"
 #include "KalaHeaders/file_utils.hpp"
 
+#include "KalaCLI/include/core.hpp"
+
 #include "move.hpp"
-#include "core.hpp"
-#include "command.hpp"
 
 using namespace KalaHeaders;
-using KalaMove::Core;
-using KalaMove::CommandManager;
+
+using KalaCLI::Core;
 
 using std::string;
 using std::to_string;
