@@ -37,9 +37,9 @@ set(EXT_CLI_DIR "${EXT_SHARED_DIR}/KalaCLI")
 
 # Library Paths
 if(IS_RELEASE)
-    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/release/_KalaCLI1.lib")
+    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/release/KalaCLI1.lib")
 else()
-    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/debug/_KalaCLI1d.lib")
+    set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/debug/KalaCLI1d.lib")
 endif()
 
 # Source Files
