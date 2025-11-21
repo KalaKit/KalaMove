@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include <sstream>
-
 #include "KalaCLI/include/core.hpp"
 #include "KalaCLI/include/command.hpp"
 
@@ -14,9 +12,9 @@ using KalaCLI::Core;
 using KalaCLI::Command;
 using KalaCLI::CommandManager;
 
-using KalaMove::Move;
+using namespace KalaHeaders;
 
-using std::ostringstream;
+using KalaMove::Move;
 
 static void AddExternalCommands()
 {
