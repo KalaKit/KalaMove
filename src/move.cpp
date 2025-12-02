@@ -19,7 +19,17 @@
 
 #include "move.hpp"
 
-using namespace KalaHeaders;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
+using KalaHeaders::KalaString::SplitString;
+using KalaHeaders::KalaString::StartsWith;
+using KalaHeaders::KalaString::RemoveAllFromString;
+using KalaHeaders::KalaString::ReplaceAllFromString;
+using KalaHeaders::KalaFile::CopyPath;
+using KalaHeaders::KalaFile::MovePath;
+using KalaHeaders::KalaFile::RenamePath;
+using KalaHeaders::KalaFile::DeletePath;
+using KalaHeaders::KalaFile::CreateDirectory;
 
 using KalaCLI::Core;
 
