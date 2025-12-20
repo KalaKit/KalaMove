@@ -20,7 +20,7 @@ Traditional installers (NSIS, Inno Setup, MSI, etc.) are often **overkill** if y
 | Feature                    | KalaMove |
 |----------------------------|----------|
 | **Cross-platform**         | Yes - `.kmf` works on both Windows & Linux |
-| **Executable size**        | < 1 MB standalone `.exe` |
+| **Executable size**        | < 200 KB standalone `.exe` |
 | **Transparency**           | Users can read `.kmf` files directly |
 | **Zero setup**             | Drop KalaMove and the manifest file anywhere and run it |
 | **Focused scope**          | Basic file operations only - no bloat |
