@@ -2,7 +2,7 @@
 
 **KalaMove** is an executable that uses `.kmf` files that are designed as a lightweight, strict, and repeatable alternative to batch/shell scripts, CMake commands, or even full installers when all you need is reliable file movement.
 
-This cli was built with the help of a [template cli](https://github.com/kalakit/kalacli).
+This cli was built with the help of the [KalaCLI](https://github.com/kalakit/kalacli) library.
 
 ## Links
 
