@@ -22,8 +22,6 @@ This cli was built with the help of the [KalaCLI](https://github.com/kalakit/kal
 
 [How to use](docs/how_to_use.md)
 
-[Why use KalaMove](docs/why_use_km.md)
-
 [Next version goals](docs/next_version_goals.md)
 
 [Lost Empire Entertainment and KalaKit ecosystem](docs/ecosystem.md)
