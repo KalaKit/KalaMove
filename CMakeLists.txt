@@ -72,7 +72,12 @@ target_include_directories(KalaMove PRIVATE
 )
 
 # Preprocessor Defines
-target_compile_definitions(KalaMove PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_compile_definitions(KalaMove PRIVATE 
+	WIN32_LEAN_AND_MEAN # cleaner windows.h
+	NOMINMAX            # skips min/max windows macros in favor of the std variants
+	UNICODE             # selects wide api variants over ansi for UTF16 windows functions
+	_UNICODE            # uses wide text types in the C runtime layer
+)
 
 # Link libraries
 target_link_libraries(KalaMove PRIVATE
