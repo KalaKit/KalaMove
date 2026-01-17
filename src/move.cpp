@@ -1,4 +1,4 @@
-//Copyright(C) 2025 Lost Empire Entertainment
+//Copyright(C) 2026 Lost Empire Entertainment
 //This program comes with ABSOLUTELY NO WARRANTY.
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
@@ -89,9 +89,11 @@ namespace KalaMove
 		if (params.size() == 1
 			&& params[0] == "all")
 		{
-			if (Core::currentDir.empty()) Core::currentDir = current_path().string();
+			string& currentDir = Core::GetCurrentDir();
 
-			for (const auto& p : directory_iterator(Core::currentDir))
+			if (currentDir.empty()) currentDir = current_path().string();
+
+			for (const auto& p : directory_iterator(currentDir))
 			{
 				if (is_regular_file(path(p))
 					&& path(p).extension() == ".kmf")
