@@ -49,6 +49,7 @@ using std::filesystem::copy;
 using std::filesystem::copy_file;
 using std::filesystem::is_directory;
 using std::filesystem::is_regular_file;
+using std::filesystem::weakly_canonical;
 using std::filesystem::directory_iterator;
 using std::filesystem::recursive_directory_iterator;
 
@@ -367,6 +368,9 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 			originPath = ReplaceAllFromString(originPath.string(), "@", "/");
 #endif
 
+			//normalize path
+			originPath = weakly_canonical(originPath);
+
 			if (!exists(originPath))
 			{
 				Log::Print(
@@ -457,6 +461,9 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 #else
 				fullTarget = ReplaceAllFromString(fullTarget.string(), "@", "/");
 #endif
+
+				//normalize path
+				fullTarget = weakly_canonical(fullTarget);
 
 				if (kmfBlock.origin == fullTarget)
 				{
