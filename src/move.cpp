@@ -83,7 +83,7 @@ static void HandleKMFBlock(KMF kmfBlock);
 
 namespace KalaMove
 {
-	void Move::Run(const vector<string>& params)
+	void KalaMoveCore::Move(const vector<string>& params)
 	{
 		vector<path> kmfFiles{};
 

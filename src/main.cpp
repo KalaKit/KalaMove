@@ -12,9 +12,7 @@ using KalaCLI::Core;
 using KalaCLI::Command;
 using KalaCLI::CommandManager;
 
-using namespace KalaHeaders;
-
-using KalaMove::Move;
+using KalaMove::KalaMoveCore;
 
 static void AddExternalCommands()
 {
@@ -23,14 +21,14 @@ static void AddExternalCommands()
 			.primary = { "move" },
 			.description = "Parse a kmf file, second parameter must be valid path.",
 			.paramCount = 2,
-			.targetFunction = Move::Run
+			.targetFunction = KalaMoveCore::Move
 		};
 		Command cmd_move_all
 		{
 			.primary = { "all" },
 			.description = "Parse all found kmf files in current directory.",
 			.paramCount = 1,
-			.targetFunction = Move::Run
+			.targetFunction = KalaMoveCore::Move
 		};
 
 	CommandManager::AddCommand(cmd_move);

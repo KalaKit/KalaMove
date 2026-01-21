@@ -13,11 +13,11 @@ namespace KalaMove
 	using std::vector;
 	using std::string;
 
-	class Move
+	class KalaMoveCore
 	{
 	public:
 		//Ensures all paths we need to copy from and to are valid
 		//and handles copying all files to relevant paths
-		static void Run(const vector<string>& params);
+		static void Move(const vector<string>& params);
 	};
 }
