@@ -150,8 +150,9 @@ namespace KalaMove
 		details
 			<< "     | exe version: " << EXE_VERSION_NUMBER.data() << "\n"
 			<< "     | kmf version: " << KMF_VERSION_NUMBER.data() << "\n"
-		    << "     | found files: " << kmfFiles.size() << "\n";
-		details << "\n==========================================================================================\n";
+		    << "     | found files: " << kmfFiles.size() << "\n"
+		    << "\n==========================================================================================\n";
+
 		Log::Print(details.str());
 
 		vector<KMF> kmfContent{};
@@ -180,8 +181,6 @@ namespace KalaMove
 		{
 			HandleKMFBlock(kmf);
 		}
-
-		return;
 	}
 }
 
