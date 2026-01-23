@@ -23,13 +23,13 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaString::SplitString;
 using KalaHeaders::KalaString::StartsWith;
-using KalaHeaders::KalaString::RemoveAllFromString;
-using KalaHeaders::KalaString::ReplaceAllFromString;
+using KalaHeaders::KalaString::RemoveFromString;
+using KalaHeaders::KalaString::ReplaceFromString;
 using KalaHeaders::KalaFile::CopyPath;
 using KalaHeaders::KalaFile::MovePath;
 using KalaHeaders::KalaFile::RenamePath;
 using KalaHeaders::KalaFile::DeletePath;
-using KalaHeaders::KalaFile::CreateDirectory;
+using KalaHeaders::KalaFile::CreateNewDirectory;
 
 using KalaCLI::Core;
 
@@ -337,7 +337,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 				return {};
 			}
 
-			string originPathString = RemoveAllFromString(line, "origin: ");
+			string originPathString = RemoveFromString(line, "origin: ");
 			if (originPathString.empty())
 			{
 				Log::Print(
@@ -357,14 +357,14 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 			if (!isAbsolute) originPath = thisPath / originPathString;
 			else
 			{
-				originPathString = ReplaceAllFromString(originPathString, "@@", "");
+				originPathString = ReplaceFromString(originPathString, "@@", "");
 				originPath = originPathString;
 			}
 
 #ifdef _WIN32
-			originPath = ReplaceAllFromString(originPath.string(), "@", "\\");
+			originPath = ReplaceFromString(originPath.string(), "@", "\\", true);
 #else
-			originPath = ReplaceAllFromString(originPath.string(), "@", "/");
+			originPath = ReplaceFromString(originPath.string(), "@", "/", true);
 #endif
 
 			//normalize path
@@ -415,7 +415,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 				return {};
 			}
 
-			string targetPathsString = RemoveAllFromString(line, "target: ");
+			string targetPathsString = RemoveFromString(line, "target: ");
 			if (targetPathsString.empty())
 			{
 				Log::Print(
@@ -451,14 +451,14 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 				if (!isAbsolute) fullTarget = thisPath / correctTarget;
 				else
 				{
-					correctTarget = ReplaceAllFromString(correctTarget, "@@", "");
+					correctTarget = ReplaceFromString(correctTarget, "@@", "");
 					fullTarget = correctTarget;
 				}
 
 #ifdef _WIN32
-				fullTarget = ReplaceAllFromString(fullTarget.string(), "@", "\\");
+				fullTarget = ReplaceFromString(fullTarget.string(), "@", "\\", true);
 #else
-				fullTarget = ReplaceAllFromString(fullTarget.string(), "@", "/");
+				fullTarget = ReplaceFromString(fullTarget.string(), "@", "/", true);
 #endif
 
 				//normalize path
@@ -557,7 +557,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 				return {};
 			}
 
-			string actionString = RemoveAllFromString(line, "action: ");
+			string actionString = RemoveFromString(line, "action: ");
 			if (actionString.empty())
 			{
 				Log::Print(
@@ -806,7 +806,7 @@ void HandleKMFBlock(KMF kmfBlock)
 		}
 		else if (kmfBlock.action == "create")
 		{
-			string result = CreateDirectory(
+			string result = CreateNewDirectory(
 				target);
 
 			if (!result.empty())
