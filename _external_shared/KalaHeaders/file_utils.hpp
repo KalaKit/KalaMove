@@ -1034,7 +1034,11 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to get target '" << target
 					<< "' line count because it couldn't be opened! "
@@ -1204,7 +1208,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to write text to target '" << target
 					<< "' because it couldn't be opened! "
@@ -1275,7 +1284,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to read text from target '" << target
 					<< "' because it couldn't be opened! "
@@ -1375,7 +1389,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to write lines to target '" << target
 					<< "' because it couldn't be opened! "
@@ -1453,7 +1472,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to read lines from target '" << target
 					<< "' because it couldn't be opened! "
@@ -1632,7 +1656,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to write binary lines to target '" << target
 					<< "' because it couldn't be opened! "
@@ -1651,7 +1680,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to write binary lines to target '" << target
 					<< "' because it couldn't be opened! "
@@ -1725,7 +1759,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to read binary lines from target '" << target
 					<< "' because it couldn't be opened! "
@@ -1799,7 +1838,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to read binary lines from target '" << target
 					<< "' because it couldn't be opened! "
@@ -2132,7 +2176,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to get ragge by value from target '" << target
 					<< "' because it couldn't be opened! "
@@ -2202,7 +2251,12 @@ namespace KalaHeaders::KalaFile
 					int err = errno;
 
 					char errbuf[256]{};
+
+#ifdef _WIN32
 					strerror_s(errbuf, sizeof(errbuf), err);
+#else
+					strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 					oss << "Failed to get range by value from target '" << target
 						<< "' because it couldn't be opened! "
@@ -2306,7 +2360,12 @@ namespace KalaHeaders::KalaFile
 				int err = errno;
 
 				char errbuf[256]{};
+
+#ifdef _WIN32
 				strerror_s(errbuf, sizeof(errbuf), err);
+#else
+				strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 				oss << "Failed to get range by value from target '" << target
 					<< "' because it couldn't be opened! "
@@ -2376,7 +2435,12 @@ namespace KalaHeaders::KalaFile
 					int err = errno;
 
 					char errbuf[256]{};
+
+#ifdef _WIN32
 					strerror_s(errbuf, sizeof(errbuf), err);
+#else
+					strerror_r(err, errbuf, sizeof(errbuf));
+#endif
 
 					oss << "Failed to get range by value from target '" << target
 						<< "' because it couldn't be opened! "

@@ -151,8 +151,13 @@ namespace KalaHeaders::KalaLog
 			const auto in_time_t = system_clock::to_time_t(now);
 			const int ms = (us_since_epoch / 1000) % 1000; //sub-millisecond precision
 
+#ifdef _WIN32
 			localtime_s(&cachedLocal, &in_time_t);
 			gmtime_s(&cachedUTC, &in_time_t);
+#else
+			localtime_r(&in_time_t, &cachedLocal);
+			gmtime_r(&in_time_t, &cachedUTC);
+#endif
 
 			char buffer[32]{};
 			switch (timeFormat)
@@ -235,7 +240,13 @@ namespace KalaHeaders::KalaLog
 			const auto now = system_clock::now();
 
 			const auto in_time_t = system_clock::to_time_t(now);
+
+#ifdef _WIN32
 			localtime_s(&cachedLocal, &in_time_t);
+#else
+			localtime_r(&in_time_t, &cachedLocal);
+#endif
+
 			if (!cached[idx].empty()
 				&& cachedLocal.tm_yday == last_yday)
 			{
