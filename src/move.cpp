@@ -9,6 +9,7 @@
 #include <vector>
 #include <array>
 #include <filesystem>
+
 #include <iostream>
 
 #include "KalaHeaders/log_utils.hpp"
@@ -41,17 +42,12 @@ using std::getline;
 using std::ostringstream;
 using std::vector;
 using std::array;
-using std::cin;
 using std::filesystem::exists;
 using std::filesystem::path;
 using std::filesystem::current_path;
-using std::filesystem::copy;
-using std::filesystem::copy_file;
-using std::filesystem::is_directory;
 using std::filesystem::is_regular_file;
 using std::filesystem::weakly_canonical;
 using std::filesystem::directory_iterator;
-using std::filesystem::recursive_directory_iterator;
 
 //Each kalamovefile block in the .kmf file
 struct KMF
