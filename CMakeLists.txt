@@ -41,9 +41,9 @@ set(EXT_CLI_DIR "${EXT_SHARED_DIR}/KalaCLI")
 if (WIN32)
 	# Library Paths
 	if(IS_RELEASE)
-		set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/release/KalaCLI1.lib")
+		set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/release/libKalaCLI1.dll.a")
 	else()
-		set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/debug/KalaCLI1d.lib")
+		set(CLI_LIBRARY_PATH "${EXT_CLI_DIR}/debug/libKalaCLI1d.dll.a")
 	endif()
 else()
 	# Library Paths

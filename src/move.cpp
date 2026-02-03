@@ -23,7 +23,6 @@
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaString::SplitString;
-using KalaHeaders::KalaString::StartsWith;
 using KalaHeaders::KalaString::RemoveFromString;
 using KalaHeaders::KalaString::ReplaceFromString;
 using KalaHeaders::KalaFile::CopyPath;
@@ -218,7 +217,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 			if (line == KMF_VERSION_NAME) return true;
 
 			//found version tag but incorrect version or invalid version string was found
-			if (!StartsWith(line, "#KMF VERSION "))
+			if (!line.starts_with("#KMF VERSION "))
 			{
 				Log::Print(
 					"Kmf file '" + kmfPath + "' has an invalid version '" + line + "' at line '" + to_string(lineNumber) + "'!",
@@ -277,7 +276,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 		
 		//skip empty and comment lines
 		if (line.empty()
-			|| StartsWith(line, "//"))
+			|| line.starts_with("//"))
 		{
 			continue;
 		}
@@ -322,7 +321,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 		{
 			kmfBlock.line = lineNumber;
 
-			if (!StartsWith(line, "origin: "))
+			if (!line.starts_with("origin: "))
 			{
 				Log::Print(
 					"Kmf file '" + kmfFile.string() + "' has a missing origin key at line '" + to_string(lineNumber) + "'!",
@@ -345,7 +344,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 				return {};
 			}
 
-			bool isAbsolute = StartsWith(originPathString, "@@");
+			bool isAbsolute = originPathString.starts_with("@@");
 
 			path originPath{};
 
@@ -400,7 +399,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 
 		if (!hasTargets)
 		{
-			if (!StartsWith(line, "target: "))
+			if (!line.starts_with("target: "))
 			{
 				Log::Print(
 					"Kmf file '" + kmfFile.string() + "' has a missing target key at line '" + to_string(lineNumber) + "'!",
@@ -439,7 +438,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 			{
 				string correctTarget = target;
 
-				bool isAbsolute = StartsWith(correctTarget, "@@");
+				bool isAbsolute = correctTarget.starts_with("@@");
 
 				path fullTarget{};
 
@@ -542,7 +541,7 @@ vector<KMF> GetAllKMFContent(path kmfFile)
 
 		if (!hasAction)
 		{
-			if (!StartsWith(line, "action: "))
+			if (!line.starts_with("action: "))
 			{
 				Log::Print(
 					"Kmf file '" + kmfFile.string() + "' has a missing action key at line '" + to_string(lineNumber) + "'!",
