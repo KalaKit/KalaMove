@@ -152,25 +152,6 @@ foreach(BIN_FILE ${BIN_FILES})
     )
 endforeach()
 
-# Copy MinGW dlls
-if (MINGW AND WIN32)
-    set(MINGW_BIN_DIR "/usr/x86_64-w64-mingw32/bin")
-
-    set(MINGW_DLLS
-        libstdc++-6.dll
-        libgcc_s_seh-1.dll
-        libwinpthread-1.dll
-    )
-
-    foreach(dll ${MINGW_DLLS})
-        add_custom_command(TARGET KalaMove POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${MINGW_BIN_DIR}/${dll}"
-                "$<TARGET_FILE_DIR:KalaMove>/${dll}"
-        )
-    endforeach()
-endif()
-
 # Copy important files
 set(COPY_TARGETS README.md LICENSE.md CHANGES.md)
 foreach(FILE ${COPY_TARGETS})
