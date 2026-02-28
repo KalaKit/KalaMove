@@ -17,14 +17,14 @@ static void AddExternalCommands()
 {
 	CommandManager::AddCommand(
 		{
-			.primary = { "move" },
+			.primaryParam = "move",
 			.description = "Parse a kmf file, second parameter must be valid path.",
 			.paramCount = 2,
 			.targetFunction = KalaMoveCore::Move
 		});
 	CommandManager::AddCommand(
 		{
-			.primary = { "all" },
+			.primaryParam = "all",
 			.description = "Parse all found kmf files in current directory.",
 			.paramCount = 1,
 			.targetFunction = KalaMoveCore::Move
