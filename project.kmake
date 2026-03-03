@@ -1,0 +1,38 @@
+//Build script for use with kalamake. Read more at https://github.com/kalakit/kalamake
+
+#version 1.0
+
+#include
+kh: "_external_shared"
+
+#global
+standard: c++20
+binarytype: executable
+binaryname: kalamove
+sources: "src"
+headers: "include", #kh
+warninglevel: normal
+
+#profile debug-windows
+compiler: clang-cl
+buildtype: debug
+buildpath: "build/debug-windows"
+links: "_external_shared/KalaCLI/debug/KalaCLI1d.lib"
+
+#profile release-windows
+compiler: clang-cl
+buildtype: release
+buildpath: "build/release-windows"
+links: "_external_shared/KalaCLI/release/KalaCLI1.lib"
+
+#profile debug-linux
+compiler: clang++
+buildtype: debug
+buildpath: "build/debug-linux"
+links: "_external_shared/KalaCLI/debug/libKalaCLI1d.a"
+
+#profile release-linux
+compiler: clang++
+buildtype: release
+buildpath: "build/release-linux"
+links: "_external_shared/KalaCLI/release/libKalaCLI1.a"
