@@ -6,12 +6,14 @@
 kh: "_external_shared"
 
 #global
+compilerlauncher: ccache
 standard: c++20
 binarytype: executable
 binaryname: kalamove
 sources: "src"
 headers: "include", #kh
 warninglevel: normal
+customflags: export-compile-commands
 
 #profile debug-windows
 compiler: clang-cl
