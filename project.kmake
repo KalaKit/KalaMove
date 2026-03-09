@@ -2,8 +2,12 @@
 
 #version 1.0
 
-#include
-kh: "_external_shared"
+#references
+dir_release: build/release-
+dir_debug: build/debug-
+name_kc: KalaCLI1
+dir_kc_rel: _external_shared/KalaCLI/release
+dir_kc_deb: _external_shared/KalaCLI/debug
 
 #global
 compilerlauncher: ccache
@@ -11,30 +15,31 @@ standard: c++20
 binarytype: executable
 binaryname: kalamove
 sources: "src"
-headers: "include", #kh
+headers: "include", "_external_shared"
 warninglevel: normal
 customflags: export-compile-commands
 
 #profile debug-windows
 compiler: clang-cl
 buildtype: debug
-buildpath: "build/debug-windows"
-links: "_external_shared/KalaCLI/debug/KalaCLI1d.lib"
+buildpath: "${dir_debug}windows"
+links: "${dir_kc_deb}/${name_kc}d.lib"
 
 #profile release-windows
 compiler: clang-cl
 buildtype: minsizerel
-buildpath: "build/release-windows"
-links: "_external_shared/KalaCLI/release/KalaCLI1.lib"
+buildpath: "${dir_release}windows"
+links: "${dir_kc_rel}/${name_kc}.lib"
 
 #profile debug-linux
 compiler: clang++
 buildtype: debug
-buildpath: "build/debug-linux"
-links: "_external_shared/KalaCLI/debug/libKalaCLI1d.a"
+buildpath: "${dir_debug}linux"
+links: "${dir_kc_deb}/lib${name_kc}d.a"
 
 #profile release-linux
 compiler: clang++
 buildtype: minsizerel
-buildpath: "build/release-linux"
-links: "_external_shared/KalaCLI/release/libKalaCLI1.a"
+buildpath: "${dir_release}linux"
+links: "${dir_kc_rel}/lib${name_kc}.a"
+customflags: linux-strip-symbols
