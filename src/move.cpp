@@ -12,11 +12,11 @@
 
 #include <iostream>
 
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/string_utils.hpp"
-#include "KalaHeaders/file_utils.hpp"
+#include "log_utils.hpp"
+#include "string_utils.hpp"
+#include "file_utils.hpp"
 
-#include "KalaCLI/include/core.hpp"
+#include "kc_core.hpp"
 
 #include "move.hpp"
 

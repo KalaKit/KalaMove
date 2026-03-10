@@ -3,8 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include "KalaCLI/include/core.hpp"
-#include "KalaCLI/include/command.hpp"
+#include "kc_core.hpp"
+#include "kc_command.hpp"
 
 #include "move.hpp"
 

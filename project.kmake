@@ -15,7 +15,7 @@ standard: c++20
 binarytype: executable
 binaryname: kalamove
 sources: "src"
-headers: "include", "_external_shared"
+headers: "include", "_external_shared/KalaHeaders", "_external_shared/KalaCLI/include"
 warninglevel: normal
 customflags: export-compile-commands
 
