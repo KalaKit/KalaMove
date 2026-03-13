@@ -10,8 +10,6 @@
 #include <array>
 #include <filesystem>
 
-#include <iostream>
-
 #include "log_utils.hpp"
 #include "string_utils.hpp"
 #include "file_utils.hpp"
@@ -59,7 +57,6 @@ struct KMF
 
 static path thisPath{};
 
-constexpr string_view EXE_VERSION_NUMBER = "1.2";
 constexpr string_view KMF_VERSION_NUMBER = "1.0";
 constexpr string_view KMF_VERSION_NAME = "#KMF VERSION 1.0";
 
@@ -141,12 +138,6 @@ namespace KalaMove
 		}
 
 		ostringstream details{};
-
-		details
-			<< "     | exe version: " << EXE_VERSION_NUMBER.data() << "\n"
-			<< "     | kmf version: " << KMF_VERSION_NUMBER.data() << "\n"
-		    << "     | found files: " << kmfFiles.size() << "\n"
-		    << "\n==========================================================================================\n";
 
 		Log::Print(details.str());
 
