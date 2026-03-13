@@ -16,6 +16,7 @@ binarytype: executable
 binaryname: kalamove
 sources: "src"
 headers: "include", "_external_shared/KalaHeaders", "_external_shared/KalaCLI/include"
+defines: LIB_STATIC
 warninglevel: normal
 customflags: export-compile-commands
 
