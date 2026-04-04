@@ -79,8 +79,7 @@ namespace KalaMove
 	{
 		vector<path> kmfFiles{};
 
-		if (params.size() == 1
-			&& params[0] == "all")
+		if (params[0] == "all")
 		{
 			string& currentDir = Core::GetCurrentDir();
 
@@ -106,8 +105,7 @@ namespace KalaMove
 				return;
 			}
 		}
-		else if (params.size() == 2
-				 && params[0] == "move")
+		else if (params[0] == "move")
 		{
 			if (is_regular_file(params[1])
 				&& path(params[1]).has_extension()
@@ -125,16 +123,6 @@ namespace KalaMove
 
 				return;
 			}
-		}
-		else
-		{
-			Log::Print(
-				"Invalid combination of parameters was passed to 'move' or 'all' command!",
-				"GET_KMF",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
 		}
 
 		ostringstream details{};
