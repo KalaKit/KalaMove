@@ -4,6 +4,8 @@
 
 This cli was built with the help of the [KalaCLI](https://github.com/kalakit/kalacli) library.
 
+This project relies on several [external dependencies](https://github.com/greeenlaser/external-shared), they are not shipped inside this project, please make sure you have that repository cloned into a folder inside the same parent directory as this project folder before compiling this project from source.
+
 ## Links
 
 [Donate on PayPal](https://www.paypal.com/donate/?hosted_button_id=QWG8SAYX5TTP6)
