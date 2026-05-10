@@ -10,6 +10,7 @@ name_kc: kalacli
 dir_kc_rel: ../external-shared/KalaCLI/release
 dir_kc_deb: ../external-shared/KalaCLI/debug
 comm_objcopy: objcopy --remove-section .note.gnu.property
+links_win: msvcrt, msvcprt, ucrt, vcruntime, shell32, user32
 
 #global
 compilerlauncher: ccache
@@ -23,16 +24,16 @@ warninglevel: normal
 customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows
-compiler: clang-cl
+compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}windows"
-links: "${dir_kc_deb}/${name_kc}d.lib"
+links: "${dir_kc_deb}/${name_kc}d.lib", ${links_win}
 
 #profile release-windows
-compiler: clang-cl
+compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}windows"
-links: "${dir_kc_rel}/${name_kc}.lib"
+links: "${dir_kc_rel}/${name_kc}.lib", ${links_win}
 
 #profile debug-linux
 compiler: clang++
